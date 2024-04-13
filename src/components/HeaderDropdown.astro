@@ -5,10 +5,10 @@ type Links = HTMLAttributes<"a">;
 
 interface Props extends HTMLAttributes<"div"> {
   label: string;
-  items: Links[];
+  // items: Links[];
 }
 
-const { label, items, class: className, ...props } = Astro.props;
+const { label, class: className, ...props } = Astro.props;
 
 const { pathname } = Astro.url;
 // const subpath = pathname.match(/[^\/]+/g);
@@ -20,7 +20,7 @@ const isActive = true;
   <div class="label">⍱{label}</div>
   <div class="item-wrapper">
     <div class="h-6"></div>
-    <slot set:html={items} />
+    <slot />
   </div>
 </div>
 <style>

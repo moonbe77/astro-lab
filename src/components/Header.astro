@@ -1,28 +1,14 @@
 ---
 import HeaderLink from "./HeaderLink.astro";
 import { SITE_TITLE } from "../consts";
-import HeaderDropdown from "./HeaderDropdown.astro";
+import HeaderDropdown from "./HeaderDropdownRecursive.astro";
+import { topLinks } from "../config/menu-data";
 ---
 
 <header>
   <nav>
     <h2><a href="/">{SITE_TITLE}</a></h2>
-    <div class="internal-links">
-      <HeaderLink href="/">Home</HeaderLink>
-      <HeaderLink href="/blog">Blog</HeaderLink>
-      <HeaderLink href="/about">About</HeaderLink>
-
-      <HeaderDropdown label="dropdown" items={[]}>
-        <HeaderLink href="/about">About 1</HeaderLink>
-        <HeaderLink href="/about">About 2</HeaderLink>
-        <HeaderLink href="/about">About 33</HeaderLink>
-      </HeaderDropdown>
-      <HeaderDropdown label="dropdown" items={[]}>
-        <HeaderLink href="/about">About 100</HeaderLink>
-        <HeaderLink href="/about">About 200</HeaderLink>
-        <HeaderLink href="/about">About 300</HeaderLink>
-      </HeaderDropdown>
-    </div>
+    <div class="internal-links" id="nav-container"></div>
     <div class="social-links">
       <a href="https://m.webtoo.ls/@astro" target="_blank">
         <span class="sr-only">Follow Astro on Mastodon</span>
@@ -54,55 +40,59 @@ import HeaderDropdown from "./HeaderDropdown.astro";
     </div>
   </nav>
 </header>
-<style>
-  header {
-    margin: 0;
-    padding: 0 1em;
-    background: white;
-    box-shadow: 0 2px 8px rgba(var(--black), 5%);
+
+<script>
+  import { topLinks, navItems, type NavItem } from "../config/menu-data";
+  var root = document.documentElement;
+  // Get the computed styles of the root element
+  var style = getComputedStyle(root);
+
+  // Get the value of the --color-font-general variable
+  function getCSSVariableValue(variableName: string) {
+    return style.getPropertyValue(`--${variableName}`);
   }
-  h2 {
-    margin: 0;
-    font-size: 1em;
+  // var color = style.getPropertyValue("--color-font-general");
+
+  function generateNav(items: NavItem[]) {
+    const ul = document.createElement("ul");
+    items.forEach((item) => {
+      const li = document.createElement("li");
+      if (item.url) {
+        const a = document.createElement("a");
+        a.href = item.url;
+        a.textContent = item.label;
+        li.appendChild(a);
+        if (item.icon) {
+          const icon = document.createElement("span");
+          icon.classList.add("icon");
+
+          icon.style.setProperty(
+            "--icon-color",
+            `${getCSSVariableValue(item.color ?? "--accent")}`
+          );
+          if (item.color) {
+            console.log("item.color", item.color);
+            console.log(getCSSVariableValue(item.color ?? "--accent"));
+          }
+          icon.innerHTML = item.icon;
+          a.prepend(icon);
+        }
+      } else {
+        li.textContent = item.label;
+      }
+      if (item.children) {
+        li.appendChild(generateNav(item.children));
+      }
+      ul.appendChild(li);
+    });
+    return ul;
   }
 
-  h2 a,
-  h2 a.active {
-    text-decoration: none;
+  // Assuming you have a <div id="nav-container"> in your HTML to hold the nav bar
+  if (navItems) {
+    document
+      .getElementById("nav-container")
+      ?.appendChild(generateNav(topLinks as NavItem[]));
   }
-  nav {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  nav a {
-    /* padding: 0em 0.5em; */
-    color: var(--black);
-    border-bottom: 4px solid transparent;
-    text-decoration: none;
-  }
-
-  nav a:hover {
-    border-bottom: 100%;
-  }
-
-  nav a.active {
-    text-decoration: none;
-    border-bottom-color: var(--accent);
-  }
-
-  .internal-links {
-    display: flex;
-    padding: 1em 0em;
-    gap: 24px;
-  }
-  .social-links,
-  .social-links a {
-    display: flex;
-  }
-  @media (max-width: 720px) {
-    .social-links {
-      display: none;
-    }
-  }
-</style>
+  // document.getElementById("nav-container").appendChild(generateNav(navItems));
+</script>

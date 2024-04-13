@@ -1,0 +1,118 @@
+---
+import type { HTMLAttributes } from "astro/types";
+import HeaderLink from "./HeaderLink.astro";
+import type { Link } from "../config/menu-data";
+
+type AnhoreLink = HTMLAttributes<"a">;
+
+interface Props extends HTMLAttributes<"div"> {
+  label: string;
+  items: Link[];
+}
+
+const { label, items, class: className, ...props } = Astro.props;
+
+const { pathname } = Astro.url;
+// const subpath = pathname.match(/[^\/]+/g);
+// const isActive = href === pathname || href === "/" + subpath?.[0];
+const isActive = true;
+---
+
+<div class="dropdown" class:list={[className, { active: isActive }]} {...props}>
+  <div class="label">⍱{label} Main Drop</div>
+  <div class="item-wrapper">
+    <div class="h-6"></div>
+    {
+      items.map(({ url, label, links }) => {
+        if (links) {
+          return (
+            <div
+              class="dropdown"
+              class:list={[className, { active: isActive }]}
+            >
+              <div class="label">{label} drop</div>
+              <div class="item-wrapper">
+                <div class="h-6" />
+                {links.map(({ url, label }) => {
+                  return <HeaderLink href={url}>{label} drop link</HeaderLink>;
+                })}
+              </div>
+            </div>
+          );
+        }
+        return <HeaderLink href={url}>{label}</HeaderLink>;
+      })
+    }
+  </div>
+</div>
+
+<script>
+  function generateNav(items) {
+    const ul = document.createElement("ul");
+    items.forEach((item) => {
+      const li = document.createElement("li");
+      if (item.url) {
+        const a = document.createElement("a");
+        a.href = item.url;
+        a.textContent = item.title;
+        li.appendChild(a);
+      } else {
+        li.textContent = item.title;
+      }
+      if (item.children) {
+        li.appendChild(generateNav(item.children));
+      }
+      ul.appendChild(li);
+    });
+    return ul;
+  }
+
+  // Assuming you have a <div id="nav-container"> in your HTML to hold the nav bar
+  document.getElementById("nav-container").appendChild(generateNav(navItems));
+</script>
+
+<style>
+  .dropdown {
+    display: inline-block;
+  }
+
+  .dropdown > .label {
+    /* font-weight: 700; */
+    cursor: pointer;
+  }
+
+  .item-wrapper {
+    background-color: aliceblue;
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    visibility: hidden;
+    width: 300px;
+  }
+
+  .dropdown:hover .item-wrapper {
+    animation: PopIn 300ms forwards;
+    visibility: visible;
+  }
+  .dropdown:hover > .label {
+    font-weight: 700;
+  }
+
+  @keyframes PopIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+</style>
+../config/menu-data
